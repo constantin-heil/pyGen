@@ -93,8 +93,6 @@ class azureGenomics:
             "IgnoreAzureRegion": None
         }
 
-
-
     def _get_blob_sas(self):
         """
         Get SAS keys for input and output blobs
