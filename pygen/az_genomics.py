@@ -34,10 +34,10 @@ class azureGenomics:
         self._get_blob_sas()
 
     def submit_workflow(self, 
-                        process = "gatk", 
-                        reference = "hg38m1",
                         blobname_R1,
-                        blobname_R2):
+                        blobname_R2,
+                        process = "gatk", 
+                        reference = "hg38m1"):
         """
         Submit a workflow and point output to a storage account
         """

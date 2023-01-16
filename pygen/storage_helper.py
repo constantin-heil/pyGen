@@ -2,6 +2,7 @@ from azure.mgmt.storage import StorageManagementClient
 from azure.identity import AzureCliCredential
 import os
 import random
+import json
 from sys import exit
 
 class provisionStorage:
@@ -11,14 +12,20 @@ class provisionStorage:
     def __init__(self, rg_name, sa_name = None, region = "westeurope"):
         self.rg_name, self.sa_name, self.region = rg_name, sa_name, region
 
-    def provision_storage(self):
+    def _init_storage_client(self):
         """
-        Provision a new storage account under a resource group
+        Internal function to create the storage client instance
         """
         credential = AzureCliCredential()
         subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
 
         self.storage_client = StorageManagementClient(credential, subscription_id)
+
+    def provision_storage(self):
+        """
+        Provision a new storage account under a resource group
+        """
+        self._init_storage_client()
 
         if not self.sa_name:
             self.sa_name = f"storageaccount{random.randint(0, 10000):04}"
@@ -61,6 +68,8 @@ class provisionStorage:
         """
         Provision blob container
         """
+        self._init_storage_client()
+        
         if not cont_name:
             cont_name = f"container{random.randint(0, 10000):04}"
 
@@ -72,6 +81,34 @@ class provisionStorage:
         )
 
         return cont_name
+
+    def __repr__(self):
+        return f"{type(self).__name__}(storage_account={self.sa_name})"
+
+    def status_to_json(self, json_fn = "provisionStorage.json"):
+        """
+        export the status dictionary to json, to allow loading from it
+        """
+        try:
+            status_str = json.dumps(self.status_dic)
+        except NameError:
+            print("status_dic not defined for {str(self)}")
+            exit(1)
+
+        with open(json_fn, "w") as fh:
+            fh.write(status_str)
+
+    @classmethod
+    def from_json(cls, json_fn):
+        """
+        Construct object from json status_dic
+        """
+        with open(json_fn, "r") as fh:
+            status_dic = json.load(fh)
+
+        return cls(status_dic["RG"],
+                   status_dic["SA_name"],
+                   status_dic["SA_region"])
 
     
         
